@@ -1,0 +1,28 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  # The PostgreSQL Database Service
+  db:
+    image: postgres:13-alpine
+    container_name: vericart-db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env # Load secrets from the .env file
+    ports:
+      - "5433:5432" # Expose DB port only if you need to connect from your host machine
+
+  # The FastAPI Application Service
+  api:
+    container_name: vericart-api
+    build: . # Build the image from the Dockerfile in the current directory
+    env_file:
+      - ./.env # Load secrets from the .env file
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db # Wait for the database to be ready before starting the API
+
+volumes:
+  postgres_data:

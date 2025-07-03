@@ -1,118 +1,11 @@
-'''# backend/app/db/crud.py
-
 from sqlalchemy.orm import Session
-from . import models  # Imports your SQLAlchemy models from the same 'db' directory
-from app.core import schemas  # Imports your Pydantic schemas from the 'core' directory
-
-# --- Product CRUD Functions ---
-
-def get_product_by_id_str(db: Session, product_id_str: str) -> models.Product | None:
-    """Fetches a product from the database by its public string ID (SKU/GTIN)."""
-    return db.query(models.Product).filter(models.Product.product_id_str == product_id_str).first()
-
-def create_product(db: Session, product: schemas.ProductCreate) -> models.Product:
-    """Creates a new product record in the database."""
-    # Use .model_dump() for Pydantic v2
-    db_product = models.Product(**product.model_dump())
-    db.add(db_product)
-    db.commit()
-    db.refresh(db_product)
-    return db_product
-
-# --- Scan CRUD Functions ---
-
-def create_scan(db: Session, scan: schemas.VerificationRequest, product_pk: int) -> models.Scan:
-    """Creates a new scan record in the database, linked to a product."""
-    db_scan = models.Scan(
-        product_pk=product_pk,
-        user_id=scan.user_id,
-        latitude=scan.latitude,
-        longitude=scan.longitude
-    )
-    db.add(db_scan)
-    db.commit()
-    db.refresh(db_scan)
-    return db_scan
-
-
-def get_user_by_walmart_id(db: Session, walmart_id: str):
-    """Fetches a user by their unique Walmart customer ID."""
-    return db.query(models.User).filter(models.User.walmart_customer_id == walmart_id).first()
-
-def create_user(db: Session, user: schemas.UserCreate):
-    """Creates a new user record in the database."""
-    db_user = models.User(walmart_customer_id=user.walmart_customer_id)
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
-
-
-def get_supplier_by_name(db: Session, name: str):
-    """Fetches a supplier by its unique name."""
-    return db.query(models.Supplier).filter(models.Supplier.name == name).first()
-
-def get_suppliers(db: Session, skip: int = 0, limit: int = 100):
-    """Fetches a paginated list of all suppliers."""
-    return db.query(models.Supplier).offset(skip).limit(limit).all()
-
-def create_supplier(db: Session, supplier: schemas.SupplierCreate):
-    """Creates a new supplier record in the database."""
-    db_supplier = models.Supplier(**supplier.dict())
-    db.add(db_supplier)
-    db.commit()
-    db.refresh(db_supplier)
-    return db_supplier
-
-def get_provenance_for_product(db: Session, product_id: str):
-    """
-    Fetches the full journey for a product from the ProvenanceEntry table.
-    This assumes you have the ProvenanceEntry model defined.
-    """
-    # Replace 'models.ProvenanceEntry' if you named it differently
-    return db.query(models.ProvenanceEntry)\
-        .filter(models.ProvenanceEntry.product_id == product_id)\
-        .order_by(models.ProvenanceEntry.timestamp.asc())\
-        .all()
-
-def get_product(db: Session, product_id: str):
-    """Fetches a single product by its public string ID."""
-    return db.query(models.Product).filter(models.Product.id == product_id).first()
-
-def get_products(db: Session, skip: int = 0, limit: int = 100):
-    """Fetches a paginated list of all products."""
-    return db.query(models.Product).offset(skip).limit(limit).all()
-
-def create_product(db: Session, product: schemas.ProductCreate):
-    """
-    Creates a new product record in the database from a Pydantic schema.
-    """
-    # The **product.dict() correctly maps fields like 'id', 'name', 'supplier_id'
-    db_product = models.Product(**product.dict())
-    db.add(db_product)
-    db.commit()
-    db.refresh(db_product)
-    return db_product
-
-def get_supplier(db: Session, supplier_id: int):
-    """
-    Fetches a single supplier by its integer primary key.
-    This is essential for validation.
-    """
-    return db.query(models.Supplier).filter(models.Supplier.id == supplier_id).first()'''
-
-# backend/app/db/crud.py
-
-from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, case
 from typing import List, Optional
 
 from . import models
 from app.core import schemas
 
-# ===================================================================
-# Product CRUD Functions
-# ===================================================================
+
 
 def get_product(db: Session, product_id: str) -> Optional[models.Product]:
     """Fetches a single product by its public string ID."""
@@ -138,10 +31,9 @@ def create_product(db: Session, product: schemas.ProductCreate) -> models.Produc
     Creates a new product record from a Pydantic schema.
     This version uses explicit mapping to avoid kwargs ambiguity.
     """
-    # Create the SQLAlchemy model instance by setting attributes one by one.
-    # This is the clearest and most reliable method.
+    
     db_product = models.Product(
-        product_id_str=product.product_id_str, # Map from pydantic to SQLAlchemy
+        product_id_str=product.product_id_str, 
         name=product.name,
         category=product.category,
         supplier_id=product.supplier_id
@@ -152,9 +44,27 @@ def create_product(db: Session, product: schemas.ProductCreate) -> models.Produc
     db.refresh(db_product)
     return db_product
 
-# ===================================================================
-# Supplier CRUD Functions
-# ===================================================================
+def get_product_verification_stats(db: Session, product_id: int) -> dict:
+    """
+    Calculates the total scans and authentic scans for a given product ID
+    in a single, efficient database query.
+    """
+    
+    stats = db.query(
+        func.count(models.Scan.id).label("total_scans"),
+        func.sum(
+            case((models.Scan.is_authentic == True, 1), else_=0)
+        ).label("authentic_scans")
+    ).filter(models.Scan.product_id == product_id).one()
+
+    
+    return {
+        "total_scans": stats.total_scans or 0,
+        "authentic_scans": stats.authentic_scans or 0
+    }
+
+
+
 
 def get_supplier(db: Session, supplier_id: int) -> Optional[models.Supplier]:
     """Fetches a single supplier by its integer primary key."""
@@ -176,9 +86,7 @@ def create_supplier(db: Session, supplier: schemas.SupplierCreate) -> models.Sup
     db.refresh(db_supplier)
     return db_supplier
 
-# ===================================================================
-# User CRUD Functions
-# ===================================================================
+
 
 def get_user_by_walmart_id(db: Session, walmart_id: str) -> Optional[models.User]:
     """Fetches a user by their unique Walmart customer ID."""
@@ -192,9 +100,7 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
     db.refresh(db_user)
     return db_user
 
-# ===================================================================
-# Scan & Alert CRUD Functions (Often used together)
-# ===================================================================
+
 
 def create_scan(db: Session, scan: schemas.ScanCreate, product_id: str, is_authentic: bool) -> models.Scan:
     """Creates a new scan record."""
@@ -206,14 +112,14 @@ def create_scan(db: Session, scan: schemas.ScanCreate, product_id: str, is_authe
         is_authentic=is_authentic
     )
     db.add(db_scan)
-    # Note: Commit is handled by the calling service (ScanProcessor) to ensure transactional integrity.
+    
     return db_scan
 
 def create_alert(db: Session, alert: schemas.AlertCreate, scan: models.Scan) -> models.Alert:
     """Creates a new alert record, linked to a scan."""
     db_alert = models.Alert(
         product_id=scan.product_id,
-        triggering_scan=scan, # This creates the relationship
+        triggering_scan=scan, 
         **alert.model_dump()
     )
     db.add(db_alert)
@@ -232,26 +138,23 @@ def update_alert_status(db: Session, alert_id: int, status_update: schemas.Alert
     if db_alert:
         db_alert.status = status_update.new_status
         if status_update.notes is not None:
-            db_alert.notes = status_update.notes # Assuming your model has a 'notes' field
+            db_alert.notes = status_update.notes 
         db.commit()
         db.refresh(db_alert)
     return db_alert
 
-# ===================================================================
-# Provenance & Dashboard CRUD Functions
-# ===================================================================
+
 
 def get_provenance_for_product(db: Session, product_id_str: str) -> List[models.ProvenanceEntry]:
     """Fetches the full journey for a product from the ProvenanceEntry table."""
-    # return db.query(models.ProvenanceEntry).filter(models.ProvenanceEntry.product_id == product_id).order_by(models.ProvenanceEntry.timestamp.asc()).all()
+    
     product = db.query(models.Product).filter(models.Product.product_id_str == product_id_str).first()
 
-    # Step 2: If the product doesn't exist, return an empty list immediately.
+    
     if not product:
         return []
 
-    # Step 3: Use the product's integer primary key (product.id) to query the provenance entries.
-    # This correctly compares an Integer column to an Integer value.
+    
     return db.query(models.ProvenanceEntry).filter(
         models.ProvenanceEntry.product_id == product.id
     ).order_by(models.ProvenanceEntry.timestamp.asc()).all()
@@ -293,9 +196,7 @@ def create_alert_schema(db_alert: models.Alert) -> schemas.Alert:
         product=product_schema
     )
 
-# ===================================================================
-# GAMIFICATION CRUD Functions
-# ===================================================================
+
 
 def create_point_transaction(db: Session, user: models.User, scan: models.Scan, points_to_award: int) -> models.PointTransaction:
     """
@@ -306,7 +207,7 @@ def create_point_transaction(db: Session, user: models.User, scan: models.Scan, 
     responsible for the commit to ensure the entire operation (e.g., scan + points)
     is transactional.
     """
-    # Step 1: Create the transaction record for auditing purposes.
+    
     db_point_transaction = models.PointTransaction(
         owner=user,
         scan=scan,
@@ -314,9 +215,9 @@ def create_point_transaction(db: Session, user: models.User, scan: models.Scan, 
     )
     db.add(db_point_transaction)
     
-    # Step 2: Update the user's cached total points for fast retrieval.
+    
     user.points += points_to_award
-    db.add(user) # Add the updated user object to the session
+    db.add(user) 
     
     return db_point_transaction
 
@@ -344,16 +245,16 @@ def award_badge_to_user(db: Session, user: models.User, badge: models.Badge) -> 
 
     NOTE: Does NOT commit the session, to be handled by the calling service.
     """
-    # Check if the user already has this badge
+    
     existing_user_badge = db.query(models.UserBadge).filter(
         models.UserBadge.user_id == user.id,
         models.UserBadge.badge_id == badge.id
     ).first()
 
     if existing_user_badge:
-        return None # Return None to indicate no new badge was awarded
+        return None 
 
-    # If they don't have it, create the link
+    
     db_user_badge = models.UserBadge(user=user, badge=badge)
     db.add(db_user_badge)
     
@@ -389,7 +290,20 @@ def get_all_educational_categories(db: Session) -> List[str]:
     Fetches a unique list of all available educational content categories.
     This is useful for the UI to build a navigation menu.
     """
-    # The query returns a list of tuples, e.g., [('electronics',), ('fashion',)]
-    # We use a list comprehension to flatten it into a simple list of strings.
+    
     result_tuples = db.query(models.EducationalContent.category).distinct().order_by(models.EducationalContent.category).all()
     return [category for (category,) in result_tuples]
+
+def create_or_update_metric_snapshot(db: Session, data: dict):
+    """Creates or updates a business metric snapshot for a given date."""
+    snapshot = db.query(models.BusinessMetricSnapshot).filter_by(snapshot_date=data["snapshot_date"]).first()
+    if not snapshot:
+        snapshot = models.BusinessMetricSnapshot()
+
+    for key, value in data.items():
+        setattr(snapshot, key, value)
+    
+    db.add(snapshot)
+    db.commit()
+    db.refresh(snapshot)
+    return snapshot

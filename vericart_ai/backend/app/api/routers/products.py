@@ -1,30 +1,3 @@
-'''# app/api/routers/products.py
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from app.db import crud
-from app.core import schemas
-from app.db.database import get_db
-
-router = APIRouter()
-
-@router.post("/", response_model=schemas.Product)
-def create_product(product: schemas.ProductCreate, db: Session = Depends(get_db)):
-    db_product = crud.get_product_by_id_str(db, product_id_str=product.product_id_str)
-    if db_product:
-        raise HTTPException(status_code=400, detail="Product ID already registered")
-    return crud.create_product(db=db, product=product)
-
-def create_new_product(product: schemas.ProductCreate, db: Session = Depends(get_db)): # <-- Use ProductCreate
-    # ... Check if supplier exists with product.supplier_id ...
-    db_supplier = crud.get_supplier(db, supplier_id=product.supplier_id)
-    if not db_supplier:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, f"Supplier with ID {product.supplier_id} not found.")
-
-    # ... Pass the product schema to the crud function ...
-    return crud.create_product(db=db, product=product)'''
-
-# backend/app/api/routers/products.py
-
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -46,7 +19,7 @@ def create_product(product: schemas.ProductCreate, db: Session = Depends(get_db)
     - Validates that the product ID is unique.
     - Validates that the specified supplier exists before creation.
     """
-    # 1. Check if a product with this public ID already exists
+    
     db_product = crud.get_product_by_id_str(db, product_id_str=product.product_id_str)
     if db_product:
         raise HTTPException(
@@ -54,7 +27,7 @@ def create_product(product: schemas.ProductCreate, db: Session = Depends(get_db)
             detail=f"Product with ID '{product.product_id_str}' already exists."
         )
 
-    # 2. Check if the supplier ID provided is valid
+    
     db_supplier = crud.get_supplier(db, supplier_id=product.supplier_id)
     if not db_supplier:
         raise HTTPException(
@@ -62,26 +35,59 @@ def create_product(product: schemas.ProductCreate, db: Session = Depends(get_db)
             detail=f"Supplier with ID {product.supplier_id} not found. Cannot create product."
         )
 
-    # 3. If all checks pass, create the product
+    
 
     new_db_product = crud.create_product(db=db, product=product)
     safe_product_schema = crud.create_product_schema(new_db_product)
 
-    # Return the safe, validated Pydantic object.
+    
     return safe_product_schema
 
-@router.get("/{product_id}", response_model=schemas.Product)
-def read_product(product_id: str, db: Session = Depends(get_db)):
+
+
+@router.get("/{product_id_str}", response_model=schemas.Product, summary="Get Product Details with Social Proof")
+def read_product(product_id_str: str, db: Session = Depends(get_db)):
     """
-    Retrieves a single product by its unique public-facing ID.
+    Retrieves details for a single product by its unique public-facing string ID,
+    now including social proof verification statistics.
     """
-    db_product = crud.get_product(db, product_id=product_id)
+    db_product = crud.get_product_by_id_str(db, product_id_str=product_id_str)
+    
     if db_product is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Product with ID '{product_id}' not found."
+            detail=f"Product with ID '{product_id_str}' not found."
         )
-    return db_product
+
+    
+    stats_data = crud.get_product_verification_stats(db, product_id=db_product.id)
+    total = stats_data["total_scans"]
+    authentic = stats_data["authentic_scans"]
+    
+    if total > 0:
+        percentage = round((authentic / total) * 100, 1)
+    else:
+        percentage = 100.0
+
+    verification_stats_obj = schemas.ProductVerificationStats(
+        total_scans=total,
+        authentic_scans=authentic,
+        authenticity_percentage=percentage
+    )
+
+    
+    product_response = schemas.Product(
+        
+        id=db_product.product_id_str, 
+        name=db_product.name,
+        category=db_product.category,
+        
+        supplier=schemas.Supplier.from_orm(db_product.supplier) if db_product.supplier else None,
+        
+        verification_stats=verification_stats_obj
+    )
+    
+    return product_response
 
 @router.get("/", response_model=List[schemas.Product])
 def read_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):

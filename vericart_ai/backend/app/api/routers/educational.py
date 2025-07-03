@@ -4,9 +4,9 @@ from typing import List
 
 from app.db import crud
 from app.core import schemas
-from app.db.database import get_db # Assuming your get_db dependency is in deps.py
+from app.db.database import get_db 
 
-# Create a new router for educational content
+
 router = APIRouter(
     prefix="/educational-content",
     tags=["Educational Content"],
@@ -47,16 +47,13 @@ def get_content_by_category(
     - **skip**: The number of items to skip for pagination.
     - **limit**: The maximum number of items to return.
     """
-    # FastAPI will automatically handle the case where the category is case-sensitive.
-    # You might want to convert to lower case for consistency:
-    # category_lower = category.lower()
+    
     content = crud.get_educational_content_by_category(
         db=db, category=category, skip=skip, limit=limit
     )
     
     if not content:
-        # This provides a more specific error than just an empty list if desired.
-        # Alternatively, you can just return the empty list `[]`.
+        
         raise HTTPException(
             status_code=404,
             detail=f"No educational content found for category: '{category}'"

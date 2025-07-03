@@ -1,13 +1,11 @@
-# backend/app/core/websocket_manager.py
-
 from fastapi import WebSocket
 from typing import List
 import logging
-from sqlalchemy.orm import Session, joinedload # Add this import
+from sqlalchemy.orm import Session, joinedload 
 import json
 import traceback
 from app.db import models, crud
-# Set up a logger for this module
+
 logger = logging.getLogger(__name__)
 
 class ConnectionManager:
@@ -54,10 +52,10 @@ class ConnectionManager:
             try:
                 await connection.send_json(payload)
             except Exception as e:
-                # This will catch any errors during the actual sending
+                
                 print(f"Error sending to a client: {e}")
                 traceback.print_exc()
 
 
-# Create a single global instance of the ConnectionManager.
+
 manager = ConnectionManager()

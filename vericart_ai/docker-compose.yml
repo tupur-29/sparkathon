@@ -1,28 +1,45 @@
-# docker-compose.yml
 version: '3.8'
 
 services:
-  # The PostgreSQL Database Service
+  
   db:
     image: postgres:13-alpine
     container_name: vericart-db
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
-      - ./.env # Load secrets from the .env file
+      - ./.env 
     ports:
-      - "5433:5432" # Expose DB port only if you need to connect from your host machine
+      - "5433:5432" 
+      
+  redis:
+    image: redis:6.2-alpine
+    container_name: vericart-redis
 
-  # The FastAPI Application Service
+  
   api:
     container_name: vericart-api
-    build: . # Build the image from the Dockerfile in the current directory
+    build: . 
     env_file:
-      - ./.env # Load secrets from the .env file
+      - ./.env 
     ports:
       - "8000:8000"
     depends_on:
-      - db # Wait for the database to be ready before starting the API
+      - db 
+      - redis
+  worker:
+    container_name: vericart-worker
+    
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    command: ["celery", "-A", "app.core.celery_app.celery", "worker", "-l", "info", "-B"]
+    env_file:
+      - ./.env
+    depends_on:
+      - db
+      - redis
 
 volumes:
   postgres_data:

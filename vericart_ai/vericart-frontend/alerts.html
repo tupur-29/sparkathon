@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeriCart AI - Alerts Center</title>
+    
+    <!-- External CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Connection Status Indicator -->
+    <div class="connection-status" id="connectionStatus">
+        <span class="status-indicator status-offline" id="statusIndicator"></span>
+        <span id="statusText">Connecting...</span>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+
+    <!-- Navigation Sidebar -->
+    <div class="fixed left-0 top-0 h-full w-64 bg-gray-900 shadow-2xl z-50">
+        <div class="p-6 border-b border-gray-700">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-shield-alt text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white">VeriCart AI</h1>
+                    <p class="text-gray-400 text-sm">Brand Protection</p>
+                </div>
+            </div>
+        </div>
+        
+        <nav class="mt-6">
+            <div class="px-4 space-y-2">
+                <a href="dashboard.html" class="nav-item p-3 rounded-lg flex items-center space-x-3 text-gray-300 hover:text-white">
+                    <i class="fas fa-tachometer-alt w-5"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="investigation.html" class="nav-item p-3 rounded-lg flex items-center space-x-3 text-gray-300 hover:text-white">
+                    <i class="fas fa-search w-5"></i>
+                    <span>Investigation</span>
+                </a>
+                <a href="alerts.html" class="nav-item active p-3 rounded-lg flex items-center space-x-3 text-white">
+                    <i class="fas fa-exclamation-triangle w-5"></i>
+                    <span>Alerts Center</span>
+                </a>
+                <a href="analytics.html" class="nav-item p-3 rounded-lg flex items-center space-x-3 text-gray-300 hover:text-white">
+                    <i class="fas fa-chart-line w-5"></i>
+                    <span>Analytics</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="ml-64 min-h-screen p-8">
+        <div class="mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-white">Alerts Center</h1>
+                    <p class="text-gray-400 mt-2">Manage and investigate fraud alerts</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="refreshAlertsBtn" class="btn btn-secondary">
+                        <i class="fas fa-sync mr-2"></i>
+                        Refresh
+                    </button>
+                    <button id="exportAlertsBtn" class="btn btn-primary">
+                        <i class="fas fa-download mr-2"></i>
+                        Export
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="kpi-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Total Alerts</p>
+                        <p class="text-3xl font-bold text-white mt-2" id="totalAlerts">
+                            <div class="loading"></div>
+                        </p>
+                        <p class="text-blue-400 text-sm mt-2">All time</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-bell text-white"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">New Alerts</p>
+                        <p class="text-3xl font-bold text-red-400 mt-2" id="newAlerts">
+                            <div class="loading"></div>
+                        </p>
+                        <p class="text-red-400 text-sm mt-2">Needs attention</p>
+                    </div>
+                    <div class="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-exclamation-circle text-white"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Under Investigation</p>
+                        <p class="text-3xl font-bold text-yellow-400 mt-2" id="investigatingAlerts">
+                            <div class="loading"></div>
+                        </p>
+                        <p class="text-yellow-400 text-sm mt-2">In progress</p>
+                    </div>
+                    <div class="w-12 h-12 bg-yellow-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-search text-white"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Resolved (24h)</p>
+                        <p class="text-3xl font-bold text-green-400 mt-2" id="resolvedAlerts">
+                            <div class="loading"></div>
+                        </p>
+                        <p class="text-green-400 text-sm mt-2">Completed</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-check-circle text-white"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts Management -->
+        <div class="bg-gray-800 rounded-xl p-6">
+            <!-- Filters and Controls -->
+            <div class="flex flex-wrap items-center justify-between mb-6">
+                <div class="flex items-center space-x-4 mb-4 lg:mb-0">
+                    <h2 class="text-xl font-bold text-white">Active Alerts</h2>
+                    <div class="flex space-x-2">
+                        <button class="filter-btn active" data-status="all">
+                            All <span class="ml-1 bg-gray-600 px-2 py-1 rounded-full text-xs" id="allCount">0</span>
+                        </button>
+                        <button class="filter-btn" data-status="new">
+                            New <span class="ml-1 bg-red-600 px-2 py-1 rounded-full text-xs" id="newCount">0</span>
+                        </button>
+                        <button class="filter-btn" data-status="investigating">
+                            Investigating <span class="ml-1 bg-yellow-600 px-2 py-1 rounded-full text-xs" id="investigatingCount">0</span>
+                        </button>
+                        <button class="filter-btn" data-status="resolved">
+                            Resolved <span class="ml-1 bg-green-600 px-2 py-1 rounded-full text-xs" id="resolvedCount">0</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    <!-- Search -->
+                    <div class="relative">
+                        <input type="text" id="alertSearchInput" placeholder="Search alerts..." 
+                               class="form-input pl-10 w-64">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+
+                    <!-- Sort -->
+                    <select id="alertSortSelect" class="form-input">
+                        <option value="timestamp_desc">Newest First</option>
+                        <option value="timestamp_asc">Oldest First</option>
+                        <option value="risk_score_desc">Highest Risk</option>
+                        <option value="risk_score_asc">Lowest Risk</option>
+                    </select>
+
+                    <!-- Bulk Actions -->
+                    <div class="relative">
+                        <button id="bulkActionsBtn" class="btn btn-secondary" disabled>
+                            <i class="fas fa-tasks mr-2"></i>
+                            Bulk Actions
+                            <i class="fas fa-chevron-down ml-2"></i>
+                        </button>
+                        <div id="bulkActionsMenu" class="hidden absolute right-0 mt-2 w-48 bg-gray-700 rounded-lg shadow-lg z-10">
+                            <div class="py-1">
+                                <button class="block w-full text-left px-4 py-2 text-white hover:bg-gray-600" data-action="investigate">
+                                    Mark as Investigating
+                                </button>
+                                <button class="block w-full text-left px-4 py-2 text-white hover:bg-gray-600" data-action="resolve">
+                                    Mark as Resolved
+                                </button>
+                                <button class="block w-full text-left px-4 py-2 text-white hover:bg-gray-600" data-action="dismiss">
+                                    Dismiss Selected
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerts Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-600">
+                            <th class="text-left py-3 px-4">
+                                <input type="checkbox" id="selectAllAlerts" class="rounded">
+                            </th>
+                            <th class="text-left py-3 px-4 text-gray-300 font-medium">Alert</th>
+                            <th class="text-left py-3 px-4 text-gray-300 font-medium">Product</th>
+                            <th class="text-left py-3 px-4 text-gray-300 font-medium">Risk Score</th>
+                            <th class="text-left py-3 px-4 text-gray-300 font-medium">Status</th>
+                            <th class="text-left py-3 px-4 text-gray-300 font-medium">Timestamp</th>
+                            <th class="text-left py-3 px-4 text-gray-300 font-medium">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="alertsTableBody">
+                        <tr>
+                            <td colspan="7" class="text-center py-16">
+                                <div class="loading mx-auto mb-3"></div>
+                                <p class="text-gray-400">Loading alerts...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="flex items-center justify-between mt-6">
+                <div class="text-gray-400 text-sm">
+                    Showing <span id="showingStart">0</span> to <span id="showingEnd">0</span> of <span id="totalAlertsCount">0</span> alerts
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button id="prevPageBtn" class="btn btn-secondary" disabled>
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div id="pageNumbers" class="flex space-x-2">
+                        <!-- Page numbers will be inserted here -->
+                    </div>
+                    <button id="nextPageBtn" class="btn btn-secondary" disabled>
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Details Modal -->
+        <div id="alertModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="bg-gray-800 rounded-xl max-w-4xl w-full max-h-full overflow-y-auto">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-2xl font-bold text-white">Alert Details</h2>
+                            <button id="closeAlertModal" class="text-gray-400 hover:text-white">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+                        
+                        <div id="alertModalContent">
+                            <!-- Alert                        <div id="alertModalContent">
+                            <!-- Alert details will be populated here -->
+                            <div class="text-center text-gray-400 py-8">
+                                <div class="loading mx-auto mb-3"></div>
+                                <p>Loading alert details...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Update Modal -->
+        <div id="statusModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="bg-gray-800 rounded-xl max-w-md w-full">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-xl font-bold text-white">Update Alert Status</h2>
+                            <button id="closeStatusModal" class="text-gray-400 hover:text-white">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+                        
+                        <form id="statusUpdateForm" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">New Status</label>
+                                <select id="newStatusSelect" class="form-input w-full" required>
+                                    <option value="">Select status...</option>
+                                    <option value="investigating">Investigating</option>
+                                    <option value="resolved">Resolved</option>
+                                    <option value="dismissed">Dismissed</option>
+                                    <option value="escalated">Escalated</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Notes (Optional)</label>
+                                <textarea id="statusNotes" class="form-input w-full" rows="3" 
+                                         placeholder="Add notes about this status change..."></textarea>
+                            </div>
+                            
+                            <div class="flex space-x-3">
+                                <button type="submit" class="btn btn-primary flex-1">
+                                    Update Status
+                                </button>
+                                <button type="button" id="cancelStatusUpdate" class="btn btn-secondary">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/websocket.js"></script>
+    <script src="js/alerts.js"></script>
+</body>
+</html>

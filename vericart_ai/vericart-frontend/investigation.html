@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeriCart AI - Investigation</title>
+    
+    <!-- External CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Connection Status Indicator -->
+    <div class="connection-status" id="connectionStatus">
+        <span class="status-indicator status-offline" id="statusIndicator"></span>
+        <span id="statusText">Connecting...</span>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+
+    <!-- Navigation Sidebar -->
+    <div class="fixed left-0 top-0 h-full w-64 bg-gray-900 shadow-2xl z-50">
+        <div class="p-6 border-b border-gray-700">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-shield-alt text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white">VeriCart AI</h1>
+                    <p class="text-gray-400 text-sm">Brand Protection</p>
+                </div>
+            </div>
+        </div>
+        
+        <nav class="mt-6">
+            <div class="px-4 space-y-2">
+                <a href="dashboard.html" class="nav-item p-3 rounded-lg flex items-center space-x-3 text-gray-300 hover:text-white">
+                    <i class="fas fa-tachometer-alt w-5"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="investigation.html" class="nav-item active p-3 rounded-lg flex items-center space-x-3 text-white">
+                    <i class="fas fa-search w-5"></i>
+                    <span>Investigation</span>
+                </a>
+                <a href="alerts.html" class="nav-item p-3 rounded-lg flex items-center space-x-3 text-gray-300 hover:text-white">
+                    <i class="fas fa-exclamation-triangle w-5"></i>
+                    <span>Alerts Center</span>
+                </a>
+                <a href="analytics.html" class="nav-item p-3 rounded-lg flex items-center space-x-3 text-gray-300 hover:text-white">
+                    <i class="fas fa-chart-line w-5"></i>
+                    <span>Analytics</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="ml-64 min-h-screen p-8">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-white">Investigation Center</h1>
+            <p class="text-gray-400 mt-2">Deep-dive analysis of fraudulent events and product verification</p>
+        </div>
+
+        <!-- Investigation Tabs -->
+        <div class="mb-6">
+            <div class="border-b border-gray-700">
+                <nav class="-mb-px flex space-x-8">
+                    <button class="investigation-tab active py-2 px-1 border-b-2 border-blue-500 font-medium text-sm text-white" data-tab="verification">
+                        <i class="fas fa-shield-check mr-2"></i>
+                        Product Verification
+                    </button>
+                    <button class="investigation-tab py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-400 hover:text-white" data-tab="alert-analysis">
+                        <i class="fas fa-search-plus mr-2"></i>
+                        Alert Analysis
+                    </button>
+                    <button class="investigation-tab py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-400 hover:text-white" data-tab="scan-timeline">
+                        <i class="fas fa-history mr-2"></i>
+                        Scan Timeline
+                    </button>
+                    <button class="investigation-tab py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-400 hover:text-white" data-tab="case-management">
+                        <i class="fas fa-folder-open mr-2"></i>
+                        Case Management
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Product Verification Tab -->
+        <div id="verification" class="tab-content active">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Verification Form -->
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h2 class="text-xl font-bold text-white mb-4">Product Verification</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Product ID</label>
+                            <input type="text" id="productIdInput" placeholder="Enter product ID (e.g., WM-78394)" 
+                                   class="form-input">
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Latitude</label>
+                                <input type="number" id="latitudeInput" placeholder="40.7128" step="any" 
+                                       class="form-input">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Longitude</label>
+                                <input type="number" id="longitudeInput" placeholder="-74.0060" step="any" 
+                                       class="form-input">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">User ID (Optional)</label>
+                            <input type="text" id="userIdInput" placeholder="Enter user ID" 
+                                   class="form-input">
+                        </div>
+
+                        <div class="flex space-x-3">
+                            <button id="verifyProductBtn" class="btn btn-primary flex-1">
+                                <i class="fas fa-search mr-2"></i>
+                                Verify Product
+                            </button>
+                            <button id="getCurrentLocationBtn" class="btn btn-secondary">
+                                <i class="fas fa-location-arrow mr-2"></i>
+                                Use My Location
+                            </button>
+                        </div>
+
+                        <!-- Image Verification -->
+                        <div class="border-t border-gray-600 pt-4 mt-6">
+                            <h3 class="text-lg font-semibold text-white mb-3">Image Verification</h3>
+                            <div class="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center">
+                                <input type="file" id="imageUpload" accept="image/*" class="hidden">
+                                <div id="dropZone" class="cursor-pointer">
+                                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                                    <p class="text-gray-300">Click to upload or drag & drop</p>
+                                    <p class="text-gray-500 text-sm mt-2">PNG, JPG, GIF up to 10MB</p>
+                                </div>
+                            </div>
+                            <button id="analyzeImageBtn" class="btn btn-warning w-full mt-3" disabled>
+                                <i class="fas fa-eye mr-2"></i>
+                                Analyze with AI Vision
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Verification Results -->
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h2 class="text-xl font-bold text-white mb-4">Verification Results</h2>
+                    <div id="verificationResult" class="text-gray-400 text-center py-8">
+                        <i class="fas fa-search text-6xl text-gray-600 mb-4"></i>
+                        <p>Enter a product ID and verify to see results</p>
+                    </div>
+
+                    <!-- Product Information Panel -->
+                    <div id="productInfo" class="hidden mt-6 border-t border-gray-600 pt-4">
+                        <h3 class="text-lg font-semibold text-white mb-3">Product Information</h3>
+                        <div id="productDetails" class="space-y-3">
+                            <!-- Product details will be populated here -->
+                        </div>
+                    </div>
+
+                    <!-- Social Proof Stats -->
+                    <div id="socialProof" class="hidden mt-6 border-t border-gray-600 pt-4">
+                        <h3 class="text-lg font-semibold text-white mb-3">Social Proof</h3>
+                        <div class="bg-gray-700 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-gray-300">Total Verifications</span>
+                                <span class="text-white font-bold" id="totalVerifications">0</span>
+                            </div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-gray-300">Authentic Rate</span>
+                                <span class="text-green-400 font-bold" id="authenticRate">0%</span>
+                            </div>
+                            <div class="w-full bg-gray-600 rounded-full h-2">
+                                <div class="bg-green-400 h-2 rounded-full" id="authenticBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scan Location Map -->
+            <div class="mt-8 bg-gray-800 rounded-xl p-6">
+                <h2 class="text-xl font-bold text-white mb-4">Scan Location</h2>
+                <div id="investigationMap" style="height: 300px; border-radius: 8px;"></div>
+            </div>
+        </div>
+
+        <!-- Alert Analysis Tab -->
+        <div id="alert-analysis" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Alert Selection -->
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h2 class="text-xl font-bold text-white mb-4">Select Alert for Analysis</h2>
+                    
+                    <div class="mb-4">
+                        <input type="text" id="alertSearch" placeholder="Search alerts..." 
+                               class="form-input">
+                    </div>
+
+                    <div id="alertsList" class="space-y-3 max-h-96 overflow-y-auto">
+                        <div class="text-center text-gray-400 py-8">
+                            <div class="loading mx-auto mb-3"></div>
+                            <p>Loading alerts...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alert Details -->
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h2 class="text-xl font-bold text-white mb-4">Alert Analysis</h2>
+                    <div id="alertAnalysis" class="text-gray-400 text-center py-8">
+                        <i class="fas fa-exclamation-triangle text-6xl text-gray-600 mb-4"></i>
+                        <p>Select an alert to begin analysis</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Investigation Tools -->
+            <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- ML Model Insights -->
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-lg font-bold text-white mb-4">ML Model Insights</h3>
+                    <div id="mlInsights" class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-300">Anomaly Score</span>
+                            <span class="text-red-400 font-bold" id="anomalyScore">--</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-300">Confidence Level</span>
+                            <span class="text-blue-400 font-bold" id="confidenceLevel">--</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-300">Feature Importance</span>
+                            <span class="text-purple-400 font-bold" id="featureImportance">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Geographic Analysis -->
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-lg font-bold text-white mb-4">Geographic Analysis</h3>
+                    <div id="geoAnalysis" class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-300">Distance Traveled</span>
+                            <span class="text-yellow-400 font-bold" id="distanceTraveled">--</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-300">Speed Calculated</span>
+                            <span class="text-orange-400 font-bold" id="speedCalculated">--</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-300">Time Difference</span>
+                            <span class="text-green-400 font-bold" id="timeDifference">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Risk Assessment -->
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-lg font-bold text-white mb-4">Risk Assessment</h3>
+                    <div id="riskAssessment" class="space-y-3">
+                        <div class="text-center">
+                            <div class="relative w-24 h-24 mx-auto mb-3">
+                                <svg class="w-24 h-24 transform -rotate-90">
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" class="text-gray-600"></circle>
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" class="text-red-500" id="riskCircle" style="stroke-dasharray: 0 63"></circle>
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span class="text-2xl font-bold text-white" id="riskPercentage">0%</span>
+                                </div>
+                            </div>
+                            <p class="text-gray-300" id="riskLevel">Low Risk</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scan Timeline Tab -->
+        <div id="scan-timeline" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Timeline Filters -->
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h2 class="text-xl font-bold text-white mb-4">Timeline Filters</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Product ID</label>
+                            <input type="text" id="timelineProductId" placeholder="Enter product ID" 
+                                   class="form-input">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Date Range</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="date" id="startDate" class="form-input">
+                                <input type="date" id="endDate" class="form-input">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Scan Type</label>
+                            <select id="scanTypeFilter" class="form-input">
+                                <option value="">All Scans</option>
+                                <option value="authentic">Authentic Only</option>
+                                <option value="anomaly">Anomalies Only</option>
+                            </select>
+                        </div>
+
+                        <button id="loadTimelineBtn" class="btn btn-primary w-full">
+                            <i class="fas fa-search mr-2"></i>
+                            Load Timeline
+                        </button>
+                    </div>
+
+                                            <!-- Quick Stats -->
+                        <div class="mt-6 border-t border-gray-600 pt-4">
+                            <h3 class="text-lg font-semibold text-white mb-3">Quick Stats</h3>
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-300">Total Scans</span>
+                                    <span class="text-white font-bold" id="timelineTotalScans">--</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-300">Anomalies Found</span>
+                                    <span class="text-red-400 font-bold" id="timelineAnomalies">--</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-300">Unique Locations</span>
+                                    <span class="text-blue-400 font-bold" id="uniqueLocations">--</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-300">Max Speed</span>
+                                    <span class="text-yellow-400 font-bold" id="maxSpeed">--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Visualization -->
+                <div class="lg:col-span-2">
+                    <div class="bg-gray-800 rounded-xl p-6">
+                        <h2 class="text-xl font-bold text-white mb-4">Scan Timeline</h2>
+                        <div id="timelineContainer" class="relative">
+                            <div id="timelineEmpty" class="text-center text-gray-400 py-16">
+                                <i class="fas fa-clock text-6xl text-gray-600 mb-4"></i>
+                                <p>No timeline data available</p>
+                                <p class="text-sm mt-2">Use filters and click "Load Timeline" to view scan history</p>
+                            </div>
+                            
+                            <div id="timelineContent" class="hidden">
+                                <!-- Timeline events will be populated here -->
+                                <div class="relative">
+                                    <div class="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-600"></div>
+                                    <div id="timelineEvents" class="space-y-6">
+                                        <!-- Timeline events will be inserted here dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Timeline Map -->
+                    <div class="mt-8 bg-gray-800 rounded-xl p-6">
+                        <h2 class="text-xl font-bold text-white mb-4">Geographic Timeline</h2>
+                        <div id="timelineMap" style="height: 400px; border-radius: 8px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- External Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js"></script>
+    
+    <!-- Custom Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/websocket.js"></script>
+    <script src="js/investigation.js"></script>
+</body>
+</html>
+                        
+                

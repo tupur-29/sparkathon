@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeriCart AI - Dashboard</title>
+    
+    <!-- External CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Connection Status Indicator -->
+    <div class="connection-status" id="connectionStatus">
+        <span class="status-indicator status-offline" id="statusIndicator"></span>
+        <span id="statusText">Connecting...</span>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+
+    <!-- Navigation Sidebar -->
+    <div class="fixed left-0 top-0 h-full w-64 bg-gray-900 shadow-2xl z-50">
+        <div class="p-6 border-b border-gray-700">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-shield-alt text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white">VeriCart AI</h1>
+                    <p class="text-gray-400 text-sm">Brand Protection</p>
+                </div>
+            </div>
+        </div>
+        
+        <nav class="mt-6">
+            <div class="px-4 space-y-2">
+                <a href="dashboard.html" class="nav-item active p-3 rounded-lg flex items-center space-x-3 text-white">
+                    <i class="fas fa-tachometer-alt w-5"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="investigation.html" class="nav-item p-3 rounded-lg flex items-center space-x-3 text-gray-300 hover:text-white">
+                    <i class="fas fa-search w-5"></i>
+                    <span>Investigation</span>
+                </a>
+                <a href="alerts.html" class="nav-item p-3 rounded-lg flex items-center space-x-3 text-gray-300 hover:text-white">
+                    <i class="fas fa-exclamation-triangle w-5"></i>
+                    <span>Alerts Center</span>
+                </a>
+                <a href="analytics.html" class="nav-item p-3 rounded-lg flex items-center space-x-3 text-gray-300 hover:text-white">
+                    <i class="fas fa-chart-line w-5"></i>
+                    <span>Analytics</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="ml-64 min-h-screen p-8">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-white">Global Fraud Overview</h1>
+                <p class="text-gray-400 mt-2">Real-time brand protection monitoring</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="bg-green-600 px-4 py-2 rounded-full text-sm">
+                    <i class="fas fa-circle animate-pulse mr-2"></i>
+                    System Online
+                </div>
+                <div class="text-gray-400 text-sm">
+                    Last updated: <span id="lastUpdated">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="kpi-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Total Scans (24h)</p>
+                        <p class="text-3xl font-bold text-white mt-2" id="totalScans">
+                            <div class="loading"></div>
+                        </p>
+                        <p class="text-green-400 text-sm mt-2" id="scansChange">Loading...</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-qrcode text-white"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">AI Anomalies (24h)</p>
+                        <p class="text-3xl font-bold text-red-400 mt-2" id="totalAnomalies">
+                            <div class="loading"></div>
+                        </p>
+                        <p class="text-red-400 text-sm mt-2" id="anomaliesChange">Loading...</p>
+                    </div>
+                    <div class="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-exclamation-triangle text-white"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Trust Score</p>
+                        <p class="text-3xl font-bold text-green-400 mt-2" id="trustScore">
+                            <div class="loading"></div>
+                        </p>
+                        <p class="text-green-400 text-sm mt-2" id="trustChange">Loading...</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-shield-check text-white"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Threat Level</p>
+                        <p class="text-2xl font-bold text-orange-400 mt-2" id="threatLevel">LOADING</p>
+                        <div class="w-full bg-gray-700 rounded-full h-2 mt-3">
+                            <div class="bg-orange-400 h-2 rounded-full" id="threatBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-white"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Map and Alerts -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <div class="lg:col-span-2">
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h2 class="text-xl font-bold text-white mb-4">Live Global Scan Map</h2>
+                    <div id="map" style="height: 400px; border-radius: 8px;"></div>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 rounded-xl p-6">
+                <h2 class="text-xl font-bold text-white mb-4">Priority Alerts</h2>
+                <div id="alertsContainer" class="space-y-4">
+                    <div class="text-center text-gray-400 py-8">
+                        <div class="loading mx-auto mb-3"></div>
+                        <p>Loading alerts...</p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <a href="alerts.html" class="btn btn-primary w-full text-center">
+                        View All Alerts
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Risk Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="bg-gray-800 rounded-xl p-6">
+                <h3 class="text-lg font-bold text-white mb-4">Top Risky Products</h3>
+                <canvas id="productChart" width="400" height="300"></canvas>
+            </div>
+
+            <div class="bg-gray-800 rounded-xl p-6">
+                <h3 class="text-lg font-bold text-white mb-4">Top Risky Regions</h3>
+                <canvas id="regionChart" width="400" height="300"></canvas>
+            </div>
+
+            <div class="bg-gray-800 rounded-xl p-6">
+                <h3 class="text-lg font-bold text-white mb-4">Fraud Trends</h3>
+                <canvas id="trendsChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- External Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <!-- Custom Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/websocket.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeriCart AI - Analytics</title>
+    
+    <!-- External CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Connection Status Indicator -->
+    <div class="connection-status" id="connectionStatus">
+        <span class="status-indicator status-offline" id="statusIndicator"></span>
+        <span id="statusText">Connecting...</span>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+
+    <!-- Navigation Sidebar -->
+    <div class="fixed left-0 top-0 h-full w-64 bg-gray-900 shadow-2xl z-50">
+        <div class="p-6 border-b border-gray-700">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-shield-alt text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white">VeriCart AI</h1>
+                    <p class="text-gray-400 text-sm">Brand Protection</p>
+                </div>
+            </div>
+        </div>
+        
+        <nav class="mt-6">
+            <div class="px-4 space-y-2">
+                <a href="dashboard.html" class="nav-item p-3 rounded-lg flex items-center space-x-3 text-gray-300 hover:text-white">
+                    <i class="fas fa-tachometer-alt w-5"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="investigation.html" class="nav-item p-3 rounded-lg flex items-center space-x-3 text-gray-300 hover:text-white">
+                    <i class="fas fa-search w-5"></i>
+                    <span>Investigation</span>
+                </a>
+                <a href="alerts.html" class="nav-item p-3 rounded-lg flex items-center space-x-3 text-gray-300 hover:text-white">
+                    <i class="fas fa-exclamation-triangle w-5"></i>
+                    <span>Alerts Center</span>
+                </a>
+                <a href="analytics.html" class="nav-item active p-3 rounded-lg flex items-center space-x-3 text-white">
+                    <i class="fas fa-chart-line w-5"></i>
+                    <span>Analytics</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="ml-64 min-h-screen p-8">
+        <div class="mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-white">Predictive Analytics</h1>
+                    <p class="text-gray-400 mt-2">AI-powered fraud prediction and business insights</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <select id="timeRangeSelect" class="form-input">
+                        <option value="7d">Last 7 Days</option>
+                        <option value="30d" selected>Last 30 Days</option>
+                        <option value="90d">Last 90 Days</option>
+                        <option value="1y">Last Year</option>
+                    </select>
+                    <button id="refreshAnalyticsBtn" class="btn btn-secondary">
+                        <i class="fas fa-sync mr-2"></i>
+                        Refresh
+                    </button>
+                    <button id="exportReportBtn" class="btn btn-primary">
+                        <i class="fas fa-file-pdf mr-2"></i>
+                        Export Report
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Tabs -->
+        <div class="mb-6">
+            <div class="border-b border-gray-700">
+                <nav class="-mb-px flex space-x-8">
+                    <button class="analytics-tab active py-2 px-1 border-b-2 border-blue-500 font-medium text-sm text-white" data-tab="business-impact">
+                        <i class="fas fa-chart-bar mr-2"></i>
+                        Business Impact
+                    </button>
+                    <button class="analytics-tab py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-400 hover:text-white" data-tab="ml-performance">
+                        <i class="fas fa-brain mr-2"></i>
+                        ML Performance
+                    </button>
+                    <button class="analytics-tab py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-400 hover:text-white" data-tab="predictive">
+                        <i class="fas fa-crystal-ball mr-2"></i>
+                        Predictive Models
+                    </button>
+                    <button class="analytics-tab py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-400 hover:text-white" data-tab="trends">
+                        <i class="fas fa-trending-up mr-2"></i>
+                        Trends Analysis
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Business Impact Tab -->
+        <div id="business-impact" class="tab-content active">
+            <!-- Business Metrics Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="kpi-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">Losses Prevented</p>
+                            <p class="text-3xl font-bold text-green-400 mt-2" id="lossesPrevented">
+                                <div class="loading"></div>
+                            </p>
+                            <p class="text-green-400 text-sm mt-2" id="lossesPreventedChange">Loading...</p>
+                        </div>
+                        <div class="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-shield-check text-white"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">Return Fraud Reduction</p>
+                            <p class="text-3xl font-bold text-blue-400 mt-2" id="returnFraudReduction">
+                                <div class="loading"></div>
+                            </p>
+                            <p class="text-blue-400 text-sm mt-2" id="returnFraudChange">Loading...</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-undo text-white"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">Customer Trust Score</p>
+                            <p class="text-3xl font-bold text-purple-400 mt-2" id="customerTrust">
+                                <div class="loading"></div>
+                            </p>
+                            <p class="text-purple-400 text-sm mt-2" id="customerTrustChange">Loading...</p>
+                        </div>
+                        <div class="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-heart text-white"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">Supply Chain Efficiency</p>
+                            <p class="text-3xl font-bold text-yellow-400 mt-2" id="supplyChainEfficiency">
+                                <div class="loading"></div>
+                            </p>
+                            <p class="text-yellow-400 text-sm mt-2" id="supplyChainChange">Loading...</p>
+                        </div>
+                        <div class="w-12 h-12 bg-yellow-600 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-truck text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROI Calculator -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h2 class="text-xl font-bold text-white mb-4">ROI Calculator</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Implementation Cost</label>
+                            <input type="number" id="implementationCost" value="150000" class="form-input" placeholder="Enter cost">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Monthly Operating Cost</label>
+                            <input type="number" id="operatingCost" value="25000" class="form-input" placeholder="Enter monthly cost">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Time Period (months)</label>
+                            <input type="number" id="timePeriod" value="12" class="form-input" placeholder="Enter months">
+                        </div>
+                        <button id="calculateROIBtn" class="btn btn-primary w-full">
+                            <i class="fas fa-calculator mr-2"></i>
+                            Calculate ROI
+                        </button>
+                    </div>
+                    
+                    <div id="roiResults" class="mt-6 pt-6 border-t border-gray-600 hidden">
+                        <h3 class="text-lg font-semibold text-white mb-3">ROI Analysis</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-300">Total Investment</span>
+                                <span class="text-white font-bold" id="totalInvestment">$0</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-300">Total Savings</span>
+                                <span class="text-green-400 font-bold" id="totalSavings">$0</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-300">Net Benefit</span>
+                                <span class="text-blue-400 font-bold" id="netBenefit">$0</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-300">ROI Percentage</span>
+                                <span class="text-purple-400 font-bold text-xl" id="roiPercentage">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h2 class="text-xl font-bold text-white mb-4">Business Impact Over Time</h2>
+                    <canvas id="businessImpactChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+
+            <!-- Cost Breakdown -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-lg font-bold text-white mb-4">Cost Breakdown</h3>
+                    <canvas id="costBreakdownChart" width="400" height="300"></canvas>
+                </div>
+
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-lg font-bold text-white mb-4">Fraud Prevention by Category</h3>
+                    <canvas id="fraudCategoryChart" width="400" height="300"></canvas>
+                </div>
+
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-lg font-bold text-white mb-4">Monthly Savings Trend</h3>
+                    <canvas id="savingsTrendChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ML Performance Tab -->
+        <div id="ml-performance" class="tab-content hidden">
+            <!-- Model Performance Metrics -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="kpi-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">Model Accuracy</p>
+                            <p class="text-3xl font-bold text-green-400 mt-2">94.2%</p>
+                            <p class="text-green-400 text-sm mt-2">+0.8% this week</p>
+                        </div>
+                        <div class="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-bullseye text-white"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">Precision</p>
+                            <p class="text-3xl font-bold text-blue-400 mt-2">91.8%</p>
+                            <p class="text-blue-400 text-sm mt-2">+1.2% this week</p>
+                                        <div>
+                            <p class="text-gray-400 text-sm">Precision</p>
+                            <p class="text-3xl font-bold text-blue-400 mt-2">91.8%</p>
+                            <p class="text-blue-400 text-sm mt-2">+1.2% this week</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-crosshairs text-white"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">Recall</p>
+                            <p class="text-3xl font-bold text-purple-400 mt-2">89.5%</p>
+                            <p class="text-purple-400 text-sm mt-2">+0.5% this week</p>
+                        </div>
+                        <div class="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-search-plus text-white"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">F1-Score</p>
+                            <p class="text-3xl font-bold text-yellow-400 mt-2">90.6%</p>
+                            <p class="text-yellow-400 text-sm mt-2">+0.9% this week</p>
+                        </div>
+                        <div class="w-12 h-12 bg-yellow-600 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-balance-scale text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Model Performance Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h2 class="text-xl font-bold text-white mb-4">Model Performance Over Time</h2>
+                    <canvas id="modelPerformanceChart" width="400" height="300"></canvas>
+                </div>
+
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h2 class="text-xl font-bold text-white mb-4">Confusion Matrix</h2>
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div class="bg-green-900 bg-opacity-50 border border-green-500 rounded-lg p-4">
+                            <div class="text-2xl font-bold text-green-400">8,742</div>
+                            <div class="text-sm text-green-300">True Positives</div>
+                        </div>
+                        <div class="bg-red-900 bg-opacity-50 border border-red-500 rounded-lg p-4">
+                            <div class="text-2xl font-bold text-red-400">567</div>
+                            <div class="text-sm text-red-300">False Positives</div>
+                        </div>
+                        <div class="bg-red-900 bg-opacity-50 border border-red-500 rounded-lg p-4">
+                            <div class="text-2xl font-bold text-red-400">892</div>
+                            <div class="text-sm text-red-300">False Negatives</div>
+                        </div>
+                        <div class="bg-green-900 bg-opacity-50 border border-green-500 rounded-lg p-4">
+                            <div class="text-2xl font-bold text-green-400">45,231</div>
+                            <div class="text-sm text-green-300">True Negatives</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feature Importance -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-lg font-bold text-white mb-4">Feature Importance</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-300">Speed (km/h)</span>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-24 bg-gray-600 rounded-full h-2">
+                                    <div class="bg-blue-400 h-2 rounded-full" style="width: 85%"></div>
+                                </div>
+                                <span class="text-blue-400 text-sm font-medium">0.85</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-300">Time Difference</span>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-24 bg-gray-600 rounded-full h-2">
+                                    <div class="bg-green-400 h-2 rounded-full" style="width: 72%"></div>
+                                </div>
+                                <span class="text-green-400 text-sm font-medium">0.72</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-300">Distance</span>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-24 bg-gray-600 rounded-full h-2">
+                                    <div class="bg-purple-400 h-2 rounded-full" style="width: 68%"></div>
+                                </div>
+                                <span class="text-purple-400 text-sm font-medium">0.68</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-300">Scan Order</span>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-24 bg-gray-600 rounded-full h-2">
+                                    <div class="bg-yellow-400 h-2 rounded-full" style="width: 45%"></div>
+                                </div>
+                                <span class="text-yellow-400 text-sm font-medium">0.45</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-300">Geographic Region</span>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-24 bg-gray-600 rounded-full h-2">
+                                    <div class="bg-red-400 h-2 rounded-full" style="width: 32%"></div>
+                                </div>
+                                <span class="text-red-400 text-sm font-medium">0.32</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-lg font-bold text-white mb-4">Model Training History</h3>
+                    <div class="space-y-4">
+                        <div class="border-l-4 border-green-500 pl-4">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-white font-medium">v2.1.3</span>
+                                <span class="text-green-400 text-sm">Current</span>
+                            </div>
+                            <p class="text-gray-400 text-sm">Deployed: Dec 15, 2023</p>
+                            <p class="text-gray-400 text-sm">Training data: 2.3M samples</p>
+                        </div>
+                        <div class="border-l-4 border-gray-500 pl-4">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-white font-medium">v2.1.2</span>
+                                <span class="text-gray-400 text-sm">Previous</span>
+                            </div>
+                            <p class="text-gray-400 text-sm">Deployed: Nov 28, 2023</p>
+                            <p class="text-gray-400 text-sm">Training data: 2.1M samples</p>
+                        </div>
+                        <div class="border-l-4 border-gray-500 pl-4">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-white font-medium">v2.1.1</span>
+                                <span class="text-gray-400 text-sm">Archive</span>
+                            </div>
+                            <p class="text-gray-400 text-sm">Deployed: Nov 10, 2023</p>
+                            <p class="text-gray-400 text-sm">Training data: 1.9M samples</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Predictive Models Tab -->
+        <div id="predictive" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Fraud Prediction -->
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h2 class="text-xl font-bold text-white mb-4">Fraud Prediction Timeline</h2>
+                    <canvas id="fraudPredictionChart" width="400" height="300"></canvas>
+                </div>
+
+                <!-- Risk Forecasting -->
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h2 class="text-xl font-bold text-white mb-4">Risk Level Forecasting</h2>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center p-3 bg-gray-700 rounded-lg">
+                            <div>
+                                <span class="text-white font-medium">Next 7 Days</span>
+                                <p class="text-gray-400 text-sm">Predicted risk level</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-yellow-400 font-bold text-xl">MODERATE</span>
+                                <p class="text-yellow-400 text-sm">65% confidence</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-gray-700 rounded-lg">
+                            <div>
+                                <span class="text-white font-medium">Next 30 Days</span>
+                                <p class="text-gray-400 text-sm">Predicted risk level</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-red-400 font-bold text-xl">HIGH</span>
+                                <p class="text-red-400 text-sm">78% confidence</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-gray-700 rounded-lg">
+                            <div>
+                                <span class="text-white font-medium">Holiday Season</span>
+                                <p class="text-gray-400 text-sm">Seasonal prediction</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-red-400 font-bold text-xl">CRITICAL</span>
+                                <p class="text-red-400 text-sm">89% confidence</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Anomaly Patterns -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-lg font-bold text-white mb-4">Anomaly Patterns</h3>
+                    <canvas id="anomalyPatternsChart" width="400" height="300"></canvas>
+                </div>
+
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-lg font-bold text-white mb-4">Seasonal Trends</h3>
+                    <canvas id="seasonalTrendsChart" width="400" height="300"></canvas>
+                </div>
+
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-lg font-bold text-white mb-4">Threat Intelligence</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-red-900 bg-opacity-30 border border-red-500 rounded-lg">
+                            <span class="text-red-400">High-risk products</span>
+                            <span class="text-white font-bold">12</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-yellow-900 bg-opacity-30 border border-yellow-500 rounded-lg">
+                            <span class="text-yellow-400">Emerging threats</span>
+                            <span class="text-white font-bold">5</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-blue-900 bg-opacity-30 border border-blue-500 rounded-lg">
+                            <span class="text-blue-400">New attack vectors</span>
+                            <span class="text-white font-bold">3</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trends Analysis Tab -->
+        <div id="trends" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Fraud Trends -->
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h2 class="text-xl font-bold text-white mb-4">Fraud Trends Analysis</h2>
+                    <canvas id="fraudTrendsChart" width="400" height="300"></canvas>
+                </div>
+
+                <!-- Geographic Heatmap -->
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h2 class="text-xl font-bold text-white mb-4">Geographic Risk Distribution</h2>
+                    <canvas id="geoHeatmapChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+
+            <!-- Trend Insights -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-lg font-bold text-white mb-4">Product Categories at Risk</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-300">Electronics</span>
+                            <span class="text-red-400 font-bold">High Risk</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-300">Fashion</span>
+                            <span class="text-yellow-400 font-bold">Medium Risk</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-300">Home & Garden</span>
+                            <span class="text-green-400 font-bold">Low Risk</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-300">Health & Beauty</span>
+                            <span class="text-red-400 font-bold">High Risk</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-300">Sports & Outdoors</span>
+                            <span class="text-green-400 font-bold">Low Risk</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-lg font-bold text-white mb-4">Time-based Patterns</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-300">Peak Hours</span>
+                            <span class="text-blue-400 font-bold">2PM - 6PM</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-300">High Risk Days</span>
+                            <span class="text-red-400 font-bold">Fri - Sun</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-300">Seasonal Peak</span>
+                            <span class="text-yellow-400 font-bold">Q4 (Holiday)</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-300">Low Risk Period</span>
+                            <span class="text-green-400 font-bold">Q1</span>
+                        </div>
+                    </div>
+                </div>
+
+                                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-lg font-bold text-white mb-4">Emerging Threats</h3>
+                    <div class="space-y-3">
+                        <div class="p-3 bg-red-900 bg-opacity-30 border border-red-500 rounded-lg">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-red-400 font-semibold">QR Code Cloning</span>
+                                <span class="text-red-400 text-sm">+45%</span>
+                            </div>
+                            <p class="text-gray-300 text-sm">Sophisticated duplication of product QR codes</p>
+                        </div>
+                        
+                        <div class="p-3 bg-yellow-900 bg-opacity-30 border border-yellow-500 rounded-lg">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-yellow-400 font-semibold">Speed Manipulation</span>
+                                <span class="text-yellow-400 text-sm">+23%</span>
+                            </div>
+                            <p class="text-gray-300 text-sm">Attempts to bypass velocity detection algorithms</p>
+                        </div>
+                        
+                        <div class="p-3 bg-orange-900 bg-opacity-30 border border-orange-500 rounded-lg">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-orange-400 font-semibold">GPS Spoofing</span>
+                                <span class="text-orange-400 text-sm">+12%</span>
+                            </div>
+                            <p class="text-gray-300 text-sm">Fake location data to avoid geographic detection</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trend Summary -->
+            <div class="mt-8 bg-gray-800 rounded-xl p-6">
+                <h2 class="text-xl font-bold text-white mb-4">Trend Summary & Recommendations</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-lg font-semibold text-white mb-3">Key Insights</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-start space-x-3">
+                                <i class="fas fa-arrow-up text-red-400 mt-1"></i>
+                                <div>
+                                    <p class="text-white font-medium">Fraud attempts increased 34% during holiday season</p>
+                                    <p class="text-gray-400 text-sm">Peak activity observed between Black Friday and New Year</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <i class="fas fa-map-marker-alt text-yellow-400 mt-1"></i>
+                                <div>
+                                    <p class="text-white font-medium">Geographic clustering in major metropolitan areas</p>
+                                    <p class="text-gray-400 text-sm">NYC, LA, and Chicago account for 67% of all alerts</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <i class="fas fa-clock text-blue-400 mt-1"></i>
+                                <div>
+                                    <p class="text-white font-medium">Velocity attacks becoming more sophisticated</p>
+                                    <p class="text-gray-400 text-sm">Average time between scans decreased from 8min to 3min</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg font-semibold text-white mb-3">Recommended Actions</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-start space-x-3">
+                                <i class="fas fa-shield-alt text-green-400 mt-1"></i>
+                                <div>
+                                    <p class="text-white font-medium">Enhance model sensitivity during peak periods</p>
+                                    <p class="text-gray-400 text-sm">Implement seasonal risk adjustment algorithms</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <i class="fas fa-network-wired text-purple-400 mt-1"></i>
+                                <div>
+                                    <p class="text-white font-medium">Deploy additional monitoring in high-risk regions</p>
+                                    <p class="text-gray-400 text-sm">Increase sampling rate in metropolitan areas</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <i class="fas fa-brain text-orange-400 mt-1"></i>
+                                <div>
+                                    <p class="text-white font-medium">Update ML models with latest attack patterns</p>
+                                    <p class="text-gray-400 text-sm">Retrain models monthly with new fraud techniques</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- External Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <!-- Custom Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/websocket.js"></script>
+    <script src="js/analytics.js"></script>
+</body>
+</html>

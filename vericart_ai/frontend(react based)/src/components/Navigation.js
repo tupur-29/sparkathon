@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faTachometerAlt, 
@@ -9,14 +10,25 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 function Navigation() {
-  const [activeItem, setActiveItem] = useState('Dashboard');
-
+  const location = useLocation();
+  
   const navItems = [
-    { name: 'Dashboard', icon: faTachometerAlt },
-    { name: 'Investigation', icon: faSearch },
-    { name: 'Alerts Center', icon: faExclamationTriangle },
-    { name: 'Analytics', icon: faChartLine }
+    { name: 'Dashboard', icon: faTachometerAlt, path: '/' },
+    { name: 'Investigation', icon: faSearch, path: '/investigation' },
+    { name: 'Alerts Center', icon: faExclamationTriangle, path: '/alerts' },
+    { name: 'Analytics', icon: faChartLine, path: '/analytics' }
   ];
+
+  // Function to determine if a nav item is active
+  const isActive = (path) => {
+    if (path === '/' && location.pathname === '/') {
+      return true;
+    }
+    if (path !== '/' && location.pathname.startsWith(path)) {
+      return true;
+    }
+    return false;
+  };
 
   return (
     <div className="fixed left-0 top-0 h-full w-64 bg-gray-900 shadow-2xl z-50">
@@ -35,22 +47,18 @@ function Navigation() {
       <nav className="mt-6">
         <div className="px-4 space-y-2">
           {navItems.map((item) => (
-            <a 
+            <Link 
               key={item.name}
-              href="#"
+              to={item.path}
               className={`nav-item p-3 rounded-lg flex items-center space-x-3 ${
-                activeItem === item.name 
+                isActive(item.path) 
                 ? 'active text-white' 
                 : 'text-gray-300 hover:text-white'
               }`}
-              onClick={(e) => {
-                e.preventDefault();
-                setActiveItem(item.name);
-              }}
             >
               <FontAwesomeIcon icon={item.icon} className="w-5" />
               <span>{item.name}</span>
-            </a>
+            </Link>
           ))}
         </div>
       </nav>

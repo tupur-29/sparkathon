@@ -1,26 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faShieldCheck,
   faSearchPlus,
   faHistory,
-  faFolderOpen,
-  faLocationArrow,
-  faCloudUploadAlt,
-  faEye
+  faFolderOpen
 } from '@fortawesome/free-solid-svg-icons';
 import Navigation from '../components/Navigation';
 import ConnectionStatus from '../components/ConnectionStatus';
-import InvestigationTabs from '../components/investigation/InvestigationTabs';
 import ProductVerificationForm from '../components/investigation/ProductVerificationForm';
 import VerificationResults from '../components/investigation/VerificationResults';
 import ScanLocationMap from '../components/investigation/ScanLocationMap';
 import AlertAnalysis from '../components/investigation/AlertAnalysis';
 import ScanTimeline from '../components/investigation/ScanTimeline';
 import CaseManagement from '../components/investigation/CaseManagement';
+import Notification from '../components/Notification';
 
 function InvestigationPage() {
   const [activeTab, setActiveTab] = useState('verification');
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationConfig, setNotificationConfig] = useState({});
 
   const tabs = [
     { id: 'verification', icon: faShieldCheck, text: 'Product Verification' },
@@ -29,10 +28,29 @@ function InvestigationPage() {
     { id: 'case-management', icon: faFolderOpen, text: 'Case Management' }
   ];
 
+  const displayNotification = (message, type = 'info') => {
+    setNotificationConfig({ message, type });
+    setShowNotification(true);
+  };
+
+  // Handle tab change
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    displayNotification(`${tabs.find(tab => tab.id === tabId).text} loaded`, 'info');
+  };
+
   return (
-    <div>
-      <Navigation activePage="Investigation" />
+    <div className="InvestigationPage">
+      <Navigation />
       <ConnectionStatus />
+
+      {showNotification && (
+        <Notification 
+          message={notificationConfig.message} 
+          type={notificationConfig.type}
+          onClose={() => setShowNotification(false)}
+        />
+      )}
 
       {/* Main Content */}
       <div className="ml-64 min-h-screen p-8">
@@ -42,17 +60,31 @@ function InvestigationPage() {
         </div>
 
         {/* Investigation Tabs */}
-        <InvestigationTabs 
-          tabs={tabs} 
-          activeTab={activeTab} 
-          onTabChange={setActiveTab} 
-        />
+        <div className="mb-6">
+          <div className="border-b border-gray-700">
+            <nav className="-mb-px flex space-x-8">
+              {tabs.map(tab => (
+                <button
+                  key={tab.id}
+                  className={`investigation-tab ${activeTab === tab.id ? 'active' : ''}`}
+                  onClick={() => handleTabChange(tab.id)}
+                >
+                  <FontAwesomeIcon icon={tab.icon} className="mr-2" />
+                  {tab.text}
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
 
         {/* Product Verification Tab */}
         {activeTab === 'verification' && (
           <div className="fade-in">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <ProductVerificationForm />
+              <ProductVerificationForm 
+                onVerify={() => displayNotification('Product verification in progress...', 'info')}
+                onAnalyzeImage={() => displayNotification('AI Vision analysis in progress...', 'info')}
+              />
               <VerificationResults />
             </div>
             <ScanLocationMap />
@@ -61,17 +93,23 @@ function InvestigationPage() {
 
         {/* Alert Analysis Tab */}
         {activeTab === 'alert-analysis' && (
-          <AlertAnalysis />
+          <AlertAnalysis 
+            onAction={() => displayNotification('Action initiated successfully', 'success')}
+          />
         )}
 
         {/* Scan Timeline Tab */}
         {activeTab === 'scan-timeline' && (
-          <ScanTimeline />
+          <ScanTimeline 
+            onLoadTimeline={() => displayNotification('Timeline loaded successfully', 'success')}
+          />
         )}
 
         {/* Case Management Tab */}
         {activeTab === 'case-management' && (
-          <CaseManagement />
+          <CaseManagement 
+            onCaseAction={() => displayNotification('Case action completed', 'success')}
+          />
         )}
       </div>
     </div>

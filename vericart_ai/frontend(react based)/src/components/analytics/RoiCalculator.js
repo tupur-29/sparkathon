@@ -99,4 +99,44 @@ function RoiCalculator({ monthlySavings }) {
             id="timePeriod" 
             value={inputs.timePeriod} 
             onChange={handleInputChange}
-            className="form
+                        className="form-input" 
+            placeholder="Enter months"
+          />
+        </div>
+        <button 
+          className="btn btn-primary w-full"
+          onClick={calculateROI}
+        >
+          <FontAwesomeIcon icon={faCalculator} className="mr-2" />
+          Calculate ROI
+        </button>
+      </div>
+      
+      {showResults && (
+        <div className="mt-6 pt-6 border-t border-gray-600">
+          <h3 className="text-lg font-semibold text-white mb-3">ROI Analysis</h3>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-300">Total Investment</span>
+              <span className="text-white font-bold">{formatCurrency(results.totalInvestment)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-300">Total Savings</span>
+              <span className="text-green-400 font-bold">{formatCurrency(results.totalSavings)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-300">Net Benefit</span>
+              <span className="text-blue-400 font-bold">{formatCurrency(results.netBenefit)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-300">ROI Percentage</span>
+              <span className="text-purple-400 font-bold text-xl">{results.roiPercentage}%</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default RoiCalculator;

@@ -2,6 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import InvestigationPage from './pages/InvestigationPage';
+import AlertsPage from './pages/AlertsPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 import './App.css';
 
 function App() {
@@ -10,9 +12,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/investigation" element={<InvestigationPage />} />
-        {/* Add routes for other pages when they're implemented */}
-        <Route path="/alerts" element={<div className="ml-64 p-8 text-white">Alerts Center Page (Coming Soon)</div>} />
-        <Route path="/analytics" element={<div className="ml-64 p-8 text-white">Analytics Page (Coming Soon)</div>} />
+        <Route path="/alerts" element={<AlertsPage />} />
+        <Route path="/analytics" element={<AnalyticsPage />} />
       </Routes>
     </Router>
   );

@@ -26,6 +26,32 @@ body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+/* Analytics-specific styles */
+.analytics-tab {
+  @apply py-2 px-1 border-b-2 font-medium text-sm transition-colors;
+}
+
+.analytics-tab.active {
+  @apply border-blue-500 text-white;
+}
+
+.analytics-tab:not(.active) {
+  @apply border-transparent text-gray-400 hover:text-white;
+}
+
+/* Status colors */
+.status-online {
+  @apply bg-green-500;
+}
+
+.status-offline {
+  @apply bg-red-500;
+}
+
+.status-reconnecting {
+  @apply bg-yellow-500;
+}
+
 /* Alert-specific styles */
 .filter-btn {
   @apply px-3 py-2 rounded-lg text-gray-400 transition-colors;

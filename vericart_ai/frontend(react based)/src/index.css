@@ -26,6 +26,55 @@ body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+/* Alert-specific styles */
+.filter-btn {
+  @apply px-3 py-2 rounded-lg text-gray-400 transition-colors;
+}
+
+.filter-btn:hover {
+  @apply bg-gray-700 text-white;
+}
+
+.filter-btn.active {
+  @apply bg-gray-700 text-white;
+}
+
+.btn-icon {
+  @apply w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-600 transition-colors;
+}
+
+.dropdown-menu {
+  @apply py-1 rounded-lg shadow-lg bg-gray-700 z-10;
+}
+
+.dropdown-item {
+  @apply block w-full text-left px-4 py-2 text-white hover:bg-gray-600;
+}
+
+.status-badge {
+  @apply px-2 py-1 text-xs font-medium rounded-full;
+}
+
+.status-new {
+  @apply bg-red-600 text-white;
+}
+
+.status-investigating {
+  @apply bg-yellow-600 text-white;
+}
+
+.status-resolved {
+  @apply bg-green-600 text-white;
+}
+
+.status-dismissed {
+  @apply bg-gray-500 text-white;
+}
+
+.status-escalated {
+  @apply bg-purple-600 text-white;
+}
+
 .connection-status {
     position: fixed;
     top: 20px;

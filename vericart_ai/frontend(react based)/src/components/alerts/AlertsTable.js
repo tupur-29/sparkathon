@@ -119,3 +119,62 @@ function AlertsTable({
               <th className="text-left py-3 px-4 text-gray-300 font-medium">Status</th>
               <th className="text-left py-3 px-4 text-gray-300 font-medium">Timestamp</th>
               <th className="text-left py-3 px-4 text-gray-300 font-medium">Actions</th>
+                          </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan="7" className="text-center py-16">
+                  <div className="loading mx-auto mb-3"></div>
+                  <p className="text-gray-400">Loading alerts...</p>
+                </td>
+              </tr>
+            ) : error ? (
+              <tr>
+                <td colSpan="7" className="text-center py-16">
+                  <div className="text-gray-400">
+                    <FontAwesomeIcon icon={faExclamationTriangle} className="text-4xl mb-4" />
+                    <p className="text-lg">Error loading alerts</p>
+                    <p className="text-sm">Please try again later</p>
+                  </div>
+                </td>
+              </tr>
+            ) : alerts.length === 0 ? (
+              <tr>
+                <td colSpan="7" className="text-center py-16">
+                  <div className="text-gray-400">
+                    <FontAwesomeIcon icon={faExclamationTriangle} className="text-4xl mb-4" />
+                    <p className="text-lg">No alerts found</p>
+                    <p className="text-sm">Try adjusting your filters</p>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              alerts.map(alert => (
+                <AlertRow 
+                  key={alert.id} 
+                  alert={alert} 
+                  selected={selectedAlerts.has(alert.id)}
+                  onSelect={(checked) => handleSelectAlert(alert.id, checked)}
+                  onView={() => onViewAlert(alert.id)}
+                  onUpdateStatus={() => onUpdateStatus(alert.id)}
+                  onStatusChange={(status) => onBulkAction(status, [alert.id])}
+                />
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      <AlertPagination 
+        currentPage={pagination.currentPage}
+        totalPages={pagination.totalPages}
+        totalAlerts={pagination.totalAlerts}
+        onPageChange={onPageChange}
+      />
+    </div>
+  );
+}
+
+export default AlertsTable;

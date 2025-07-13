@@ -391,4 +391,18 @@ function AlertAnalysis() {
                 </div>
               </div>
               
-              <div className="mt-4 pt-3 border-t border-gray
+                <div className="mt-4 pt-3 border-t border-gray-600">
+                <button className="btn btn-primary w-full">
+                <FontAwesomeIcon icon={faClipboardList} className="mr-2" />
+                  Generate Report
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default AlertAnalysis;

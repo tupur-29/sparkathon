@@ -111,3 +111,14 @@ export const getChartOptions = (type, title = '') => {
           tooltip: {
             callbacks: {
               label: function(context) {
+                              return `(${context.raw.x}, ${context.raw.y})`;
+              }
+            }
+          }
+        }
+      };
+      
+    default:
+      return baseOptions;
+  }
+};
